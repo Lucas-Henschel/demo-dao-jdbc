@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 		try {
 			st = conn.prepareStatement("INSERT INTO department "
 					+ "(Name) VALUES (?)",
-					st.RETURN_GENERATED_KEYS);
+					Statement.RETURN_GENERATED_KEYS);
 			
 			st.setString(1, department.getName());
 			
@@ -52,6 +53,22 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 
 	@Override
 	public void update(Department department) {
+		PreparedStatement st = null;
+		
+		try {
+			st = conn.prepareStatement("UPDATE department " 
+					+ "SET Name = ? "
+					+ "WHERE Id = ? ");
+			
+			st.setString(1, department.getName());
+			st.setInt(2, department.getId());
+			
+			st.executeUpdate();
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override
