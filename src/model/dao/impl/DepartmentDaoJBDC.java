@@ -1,8 +1,12 @@
 package model.dao.impl;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
+import db.DbException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
 
@@ -27,12 +31,38 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 
 	@Override
 	public Department findById(Integer id) {
-		return null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement("SELECT department.* "
+					+ "FROM department "
+					+ "WHERE Id = ? ");
+			
+			st.setInt(1, id);
+			rs = st.executeQuery();
+			
+			if (rs.next()) {
+				Department department = instantiateDepartment(rs);
+				return department;
+			} 
+			return null;
+		} catch (Exception e) {
+			throw new DbException(e.getMessage());
+		}
 	}
 
 	@Override
 	public List<Department> findAll() {
 		return null;
+	}
+	
+	private Department instantiateDepartment(ResultSet rs) throws SQLException {
+		Department dep = new Department();
+		dep.setId(rs.getInt("Id"));
+		dep.setName(rs.getString("Name"));
+		
+		return dep;
 	}
 
 }
