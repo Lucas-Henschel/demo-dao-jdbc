@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import db.DB;
 import db.DbException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
@@ -20,6 +21,33 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 	
 	@Override
 	public void insert(Department department) {
+		PreparedStatement st = null;
+		
+		try {
+			st = conn.prepareStatement("INSERT INTO department "
+					+ "(Name) VALUES (?)",
+					st.RETURN_GENERATED_KEYS);
+			
+			st.setString(1, department.getName());
+			
+			int rowsAffected = st.executeUpdate();
+			
+			if (rowsAffected > 0) {
+				ResultSet rs = st.getGeneratedKeys();
+				if (rs.next()) {
+					int id = rs.getInt(1);
+					department.setId(id);
+				}
+				
+				DB.closeResultSet(rs);
+			} else {
+				throw new DbException("Unexpected error! No rows affected!");
+			} 
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override
@@ -38,6 +66,8 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 			st.executeUpdate();
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
 		}
 	}
 
@@ -61,6 +91,9 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 			return null;
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
 		}
 	}
 
@@ -84,6 +117,9 @@ public class DepartmentDaoJBDC implements DepartmentDao {
 			return list;
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
 		}
 	}
 	
